@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Admin {
+  id           String    @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String    @unique
+  passwordHash String
+  phone        String    @default("")
+  avatarUrl    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  otpCode            String?
+  otpExpiresAt       DateTime?
+  trustedDeviceToken String?
+  lastOtpVerifiedAt  DateTime?
+}
+
+model Doctor {
+  id           String   @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String   @unique
+  passwordHash String
+  hospital     String
+  specialty    String
+  phone        String
+  avatarUrl    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  otpCode            String?
+  otpExpiresAt       DateTime?
+  trustedDeviceToken String?
+  lastOtpVerifiedAt  DateTime?
+
+  patients        Patient[]
+  visits          Visit[]
+  analysisResults AnalysisResult[]
+  reports         Report[]
+  appointments    Appointment[]
+  availability    DoctorAvailability[]
+}
+
+model Patient {
+  id          String   @id @default(uuid())
+  doctorId    String?
+  doctor      Doctor?  @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+
+  // Auth fields — only set for self-registered patients
+  passwordHash       String?
+  otpCode            String?
+  otpExpiresAt       DateTime?
+  trustedDeviceToken String?
+  lastOtpVerifiedAt  DateTime?
+
+  firstName   String
+  lastName    String
+  dateOfBirth String   @default("")
+  gender      String   @default("")
+  phone       String   @default("")
+  email       String   @default("")
+  condition   String   @default("")
+  notes       String   @default("")
+  status      String   @default("Active")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  visits       Visit[]
+  reports      Report[]
+  appointments Appointment[]
+}
+
+model Visit {
+  id        String   @id @default(uuid())
+  patientId String
+  doctorId  String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor    Doctor   @relation(fields: [doctorId],  references: [id], onDelete: Cascade)
+
+  visitDate String
+  visitType String   @default("Endoscopy")
+  notes     String   @default("")
+  status    String   @default("Pending")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  media           VisitMedia[]
+  analysisResults AnalysisResult[]
+  reports         Report[]
+}
+
+model VisitMedia {
+  id            String   @id @default(uuid())
+  visitId       String
+  visit         Visit    @relation(fields: [visitId], references: [id], onDelete: Cascade)
+
+  mediaType     String
+  filename      String
+  storageUrl    String
+  mimeType      String   @default("")
+  sizeBytes     Int      @default(0)
+  durationSecs  Int      @default(0)
+  totalFrames   Int      @default(0)
+  captureSource String   @default("upload")
+  annotatedUrl  String   @default("")
+  gradcamUrl    String   @default("")
+  overlayUrl    String   @default("")
+
+  uploadedAt    DateTime @default(now())
+
+  frames          VideoFrame[]
+  analysisResults AnalysisResult[]
+}
+
+model VideoFrame {
+  id               String     @id @default(uuid())
+  mediaId          String
+  media            VisitMedia @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  frameIndex       Int
+  timestampSeconds Float      @default(0)
+  frameUrl         String
+  hasDetection     Boolean    @default(false)
+
+  // حقول معالجة AI — تتملى بعد process
+  processingStatus String     @default("pending")
+  analysisResult   String     @default("")
+  detectionCount   Int        @default(0)
+  overallRisk      String     @default("normal")
+
+  extractedAt      DateTime   @default(now())
+
+  frameDetections  FrameDetection[]
+  reportFrames     ReportSelectedFrame[]
+  detectionFrame   DetectionFrame?
+}
+
+model DetectedLesion {
+  id             String         @id @default(uuid())
+  analysisId     String
+  analysis       AnalysisResult @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  lesionType     String
+  classification String         @default("")
+  confidence     Float          @default(0)
+  location       String         @default("")
+  boundingBox    String         @default("")
+  severity       String         @default("low")
+  description    String         @default("")
+  firstSeenFrame Int            @default(0)
+  lastSeenFrame  Int            @default(0)
+  areaPct        Float          @default(0)
+
+  detectionFrames DetectionFrame[]
+}
+
+// مربوط بـ DetectedLesion (للـ image analysis القديم)
+model DetectionFrame {
+  id              String         @id @default(uuid())
+  lesionId        String
+  frameId         String         @unique
+  lesion          DetectedLesion @relation(fields: [lesionId], references: [id], onDelete: Cascade)
+  frame           VideoFrame     @relation(fields: [frameId],  references: [id], onDelete: Cascade)
+
+  annotatedUrl    String         @default("")
+  maskUrl         String         @default("")
+  frameConfidence Float          @default(0)
+  displayOrder    Int            @default(0)
+}
+
+// مربوط بـ VideoFrame مباشرة (للـ video processing الجديد)
+model FrameDetection {
+  id            String     @id @default(uuid())
+  frameId       String
+  frame         VideoFrame @relation(fields: [frameId], references: [id], onDelete: Cascade)
+
+  label         String
+  confidence    Float
+  severity      String
+  boundingBox   String     @default("")
+  gradcamBase64 String     @default("")
+
+  createdAt     DateTime   @default(now())
+}
+
+model AnalysisResult {
+  id                  String      @id @default(uuid())
+  visitId             String
+  mediaId             String?
+  doctorId            String
+  visit               Visit       @relation(fields: [visitId],  references: [id], onDelete: Cascade)
+  media               VisitMedia? @relation(fields: [mediaId],  references: [id], onDelete: Cascade)
+  doctor              Doctor      @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  analysisType        String      @default("detection")
+  modelVersion        String      @default("ViT Hybrid")
+  overallConfidence   Float       @default(0)
+  overallRisk         String      @default("low")
+  totalFramesAnalyzed Int         @default(0)
+  framesWithDetection Int         @default(0)
+  status              String      @default("pending")
+  rawOutput           String      @default("")
+
+  analyzedAt          DateTime    @default(now())
+
+  detectedLesions DetectedLesion[]
+  reports         Report[]
+}
+
+model Report {
+  id              String         @id @default(uuid())
+  patientId       String
+  doctorId        String
+  visitId         String
+  analysisId      String
+  patient         Patient        @relation(fields: [patientId],  references: [id], onDelete: Cascade)
+  doctor          Doctor         @relation(fields: [doctorId],   references: [id], onDelete: Cascade)
+  visit           Visit          @relation(fields: [visitId],    references: [id], onDelete: Cascade)
+  analysis        AnalysisResult @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  title                 String
+  clinicalNotes         String   @default("")
+  conclusion            String   @default("")
+  recommendation        String   @default("")
+  pdfUrl                String   @default("")
+  gradcamInterpretation String   @default("")
+  mediaIds              String   @default("[]")
+  status                String   @default("draft")
+
+  createdAt       DateTime       @default(now())
+  generatedAt     DateTime       @default(now())
+
+  selectedFrames  ReportSelectedFrame[]
+}
+
+model ReportSelectedFrame {
+  id                String     @id @default(uuid())
+  reportId          String
+  frameId           String
+  report            Report     @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  frame             VideoFrame @relation(fields: [frameId],  references: [id], onDelete: Cascade)
+
+  caption           String     @default("")
+  displayOrder      Int        @default(0)
+  includeAnnotation Boolean    @default(false)
+}
+
+model Appointment {
+  id          String   @id @default(uuid())
+  patientId   String
+  doctorId    String
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor      Doctor   @relation(fields: [doctorId],  references: [id], onDelete: Cascade)
+
+  scheduledDate String  @default("")
+  timeSlot      String  @default("")
+  reason        String  @default("")
+  notes         String  @default("")
+  // pending | confirmed | cancelled | completed
+  status        String  @default("pending")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DoctorAvailability {
+  id          String   @id @default(uuid())
+  doctorId    String
+  doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int      // 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
+  startTime   String   // "08:00"
+  endTime     String   // "17:00"
+  slotMinutes Int      @default(30)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  targetRole String
+  targetId   String
+  type       String
+  title      String
+  message    String
+  isRead     Boolean  @default(false)
+  metadata   String   @default("{}")
+  createdAt  DateTime @default(now())
+}

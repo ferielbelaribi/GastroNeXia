@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "gastrovisia",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "-p", "$PORT"],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "diagram",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "3333", "."],
+      "port": 3333
+    }
+  ]
+}

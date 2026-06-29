@@ -1,0 +1,43 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="44%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="#071a3e"/>
+      <stop offset="100%" stop-color="#010610"/>
+    </radialGradient>
+    <radialGradient id="lens" cx="36%" cy="30%" r="72%">
+      <stop offset="0%" stop-color="#0d2a4e"/>
+      <stop offset="48%" stop-color="#040e1f"/>
+      <stop offset="100%" stop-color="#010508"/>
+    </radialGradient>
+    <radialGradient id="shine" cx="33%" cy="26%" r="52%">
+      <stop offset="0%" stop-color="#3a8fdd" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#1a5fa8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <circle cx="50" cy="50" r="50" fill="url(#bg)"/>
+
+  <!-- Outer cyan ring -->
+  <circle cx="50" cy="50" r="46" fill="none" stroke="#00c8ff" stroke-width="2.5" opacity="0.95"/>
+
+  <!-- Inner rings -->
+  <circle cx="50" cy="50" r="37" fill="none" stroke="#1a5fa8" stroke-width="1.4" opacity="0.75"/>
+  <circle cx="50" cy="50" r="28" fill="none" stroke="#2272c5" stroke-width="1.4" opacity="0.82"/>
+  <circle cx="50" cy="50" r="20" fill="none" stroke="#2a88da" stroke-width="1.2" opacity="0.90"/>
+
+  <!-- Neural nodes -->
+  <circle cx="50" cy="4"  r="4.5" fill="#00e0ff"/>
+  <circle cx="4"  cy="50" r="4.5" fill="#00e0ff"/>
+  <circle cx="96" cy="50" r="4.5" fill="#00e0ff"/>
+
+  <!-- Connector ticks -->
+  <line x1="4"  y1="50" x2="13" y2="50" stroke="#00c8ff" stroke-width="1.5"/>
+  <line x1="87" y1="50" x2="96" y2="50" stroke="#00c8ff" stroke-width="1.5"/>
+
+  <!-- Lens -->
+  <circle cx="50" cy="50" r="13.5" fill="none" stroke="#1a5a9a" stroke-width="2.5"/>
+  <circle cx="50" cy="50" r="12"   fill="url(#lens)"/>
+  <circle cx="50" cy="50" r="12"   fill="url(#shine)"/>
+  <circle cx="44" cy="44" r="2"    fill="white" opacity="0.5"/>
+</svg>

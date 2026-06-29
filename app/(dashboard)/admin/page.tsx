@@ -1221,6 +1221,7 @@ function AdminsTab({ currentAdminId }: { currentAdminId: string }) {
       title: "Remove admin account",
       message: `Remove ${a.firstName} ${a.lastName} (${a.email})? They will no longer be able to log in.`,
       confirmLabel: "Remove",
+      // @ts-ignore
       danger: true,
     });
     if (!ok) return;

@@ -1,0 +1,12 @@
+﻿node_modules
+.next
+.git
+.vscode
+.claude
+annotation_output
+structure.txt
+structure2.txt
+tsconfig.tsbuildinfo
+*.log
+.env
+gastrovisia

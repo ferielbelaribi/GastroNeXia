@@ -9,8 +9,5 @@ pillow
 python-multipart
 numpy
 scipy
-SAM-2
-hydra-core
-omegaconf
 segmentation-models-pytorch
 albumentations

@@ -1,5 +1,6 @@
 // app/api/admin/patients/route.ts
 // List ALL patients across all doctors (admin only)
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 

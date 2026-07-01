@@ -1,5 +1,6 @@
 // app/api/admin/stats/route.ts
 // Platform-wide statistics for the admin dashboard
+export const dynamic = 'force-dynamic'
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 

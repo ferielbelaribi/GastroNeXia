@@ -1,4 +1,5 @@
 // app/api/admin/activity/route.ts
+export const dynamic = 'force-dynamic'
 // Unified activity feed across the platform
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
